@@ -16,7 +16,7 @@ docker build -t zano:latest .
 # To build Zano 2.0.1.367 with all processors on your system.
 docker build \
     --build-arg ZANO_REF="2.0.1.367" \
-    --build-arg BUILD_WIDTH=$(nproc --all) \
+    --build-arg BUILD_WIDTH=$(nproc) \
     -t zano:latest .
 ```
 
