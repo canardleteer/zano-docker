@@ -36,5 +36,5 @@ jobs:
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ env.ZANO_REF }}
-          tags: zano:${{ env.ZANO_REF }}-latest
+          tags: canardleteer/zano:${{ env.ZANO_REF }}-latest
           labels: ${{ steps.meta.outputs.labels }}
