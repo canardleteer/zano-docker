@@ -2,7 +2,7 @@ name: docker build
 
 env:
     ZANO_REF: 2.0.1.367
-    BUILD_WIDTH: 2
+    BUILD_WIDTH: 8
 
 on:
   pull_request:
