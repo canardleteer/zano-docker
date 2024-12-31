@@ -1,6 +1,6 @@
 # `zano-docker`
 
-A quick docker image for [Zano](https://zano.org/).
+A quick docker image for [Zano](https://zano.org/), cloning directly from [`hyle-team/zano` on GitHub](https://github.com/hyle-team/zano).
 
 Could use some cleanup, which I'll maybe get to over time.
 
