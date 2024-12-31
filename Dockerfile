@@ -12,7 +12,6 @@ ARG ZANO_REF=master
 # Argument to pass to `make -j` & `git clone -j`
 ARG BUILD_WIDTH=1
 
-
 RUN apt update && \
     apt install -y git curl build-essential g++ curl autotools-dev libicu-dev libbz2-dev cmake git screen checkinstall zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -21,11 +20,10 @@ WORKDIR /zano
 
 RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --recursive https://github.com/hyle-team/zano.git
 
-# NOTE(canardleteer): Reduce the version footprint in the directory here, make
-#                     it easier to change.
 RUN curl -OL https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2 && \
-    echo "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454  boost_1_84_0.tar.bz2" | shasum -c && tar -xjf boost_1_84_0.tar.bz2 && \
-    rm boost_1_84_0.tar.bz2 && cd boost_1_84_0 && \
+    echo "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454  boost_1_84_0.tar.bz2" | shasum -c && \
+    tar -xjf boost_1_84_0.tar.bz2 && mv boost_1_84_0 boost && \
+    rm boost_1_84_0.tar.bz2 && cd boost && \
     ./bootstrap.sh --with-libraries=system,filesystem,thread,date_time,chrono,regex,serialization,atomic,program_options,locale,timer,log && \
     ./b2 && cd ..
 
@@ -35,7 +33,7 @@ RUN curl -OL https://www.openssl.org/source/openssl-1.1.1w.tar.gz && \
     ./config --prefix=/zano/openssl --openssldir=/zano/openssl shared zlib && \
     make && make test && make install && cd ..
 
-ENV BOOST_ROOT=/zano/boost_1_84_0
+ENV BOOST_ROOT=/zano/boost
 ENV OPENSSL_ROOT_DIR=/zano/openssl
 
 RUN cd zano && mkdir build && cd build && \
@@ -57,7 +55,7 @@ RUN useradd -ms /bin/bash zano && \
 
 # NOTE(canardleteer): Blind copy here, boost should probably be cleaned up.
 COPY --from=builder /zano/openssl /zano/openssl 
-COPY --from=builder /zano/boost_1_84_0 /zano/boost_1_84_0
+COPY --from=builder /zano/boost /zano/boost
 COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
 COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
 COPY ./zanod-startup.sh /usr/bin/zanod-startup.sh
