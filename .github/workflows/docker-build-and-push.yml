@@ -2,7 +2,7 @@ name: docker build
 
 env:
     ZANO_REF: 2.0.1.367
-    BUILD_WIDTH: 8
+    BUILD_WIDTH: 32
 
 on:
   push:
