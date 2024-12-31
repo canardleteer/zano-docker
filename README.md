@@ -4,6 +4,9 @@ A quick docker image for [Zano](https://zano.org/).
 
 Could use some cleanup, which I'll maybe get to over time.
 
+I haven't added any `EXPOSE` hints (yet), so if you want to expose ports,
+you'll want to do so with `-p`.
+
 ## Building
 
 ```shell
@@ -25,8 +28,8 @@ mkdir -p zano-data
 
 # Run the daemon with persistent storage in a local directory.
 #
-# NOTE: `-it` appears to be required 
-docker run -it -d --name zano -v ${PWD}/zano-data:/home/zano/.Zano zano:latest
+# NOTE: `-t` is required, the Zano daemon requires a tty.
+docker run -td --name zano -v ${PWD}/zano-data:/home/zano/.Zano zano:latest
 
 # Tail logs
 docker logs -f zano
@@ -34,6 +37,8 @@ docker logs -f zano
 # Enter the running container with bash or do some simplewallet commands
 docker exec -it zano /bin/bash
 docker exec -it zano /usr/bin/simplewallet --help
+
+# Stop and remove the container, preserving data for the next run.
+docker stop zano
+docker rm zano
 ```
-
-
