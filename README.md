@@ -4,8 +4,8 @@ A quick docker image for [Zano](https://zano.org/), cloning directly from [`hyle
 
 Could use some cleanup, which I'll maybe get to over time.
 
-I haven't added any `EXPOSE` hints (yet), so if you want to expose ports,
-you'll want to do so with `-p`.
+I haven't added any `EXPOSE` hints (yet), so if you want to
+explicitly expose ports, you'll want to do so with `-p`.
 
 I have no Zano, you're welcome to tip me so I have some: `ZxCizQz5yN7Bi8smVVkHLLhLf4rRgiiwca77LsRCvKE1DhJGPmZ9vva3vsGgFQaTu4gj4XaDj4PVghdQ2pnTp9Lh2EVm7WnhA`
 
