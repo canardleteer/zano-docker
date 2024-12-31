@@ -1,0 +1,27 @@
+name: docker build
+
+env:
+    ZANO_REF: 2.0.1.367
+    BUILD_WIDTH: 2
+
+on:
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  docker-build:
+    name: docker build and push
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        
+      - name: build docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: false
+          build-args: |
+            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            ZANO_REF=${{ env.ZANO_REF }}
+          tags: zano:${{ env.ZANO_REF }}-latest
