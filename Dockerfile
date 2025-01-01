@@ -1,3 +1,7 @@
+# NOTE(canardleteer): Generally just the instructions from the upstream repo
+#                     to build, I'm sure that can be optimized, but I haven't
+#                     taken the time to do so.
+
 # NOTE(canardleteer): I haven't tested beyond ubuntu:22, but you're welcome
 #                     to experiment with a different base image. Feel free to
 #                     contribute findings or necessary adjustments needed to
@@ -44,7 +48,9 @@ FROM ubuntu:${UBUNTU_VERSION} AS runner
 
 WORKDIR /zano
 
-# NOTE(canardleteer): This hasn't been tuned much.
+# NOTE(canardleteer): This hasn't been tuned much, I'm sure it can be tuned
+#                     better by specifying a specific version without `-dev`,
+#                     but it's Ubuntu version specific.
 RUN apt update && \
     apt install -y libicu-dev && \
     rm -rf /var/lib/apt/lists/*

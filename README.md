@@ -9,6 +9,10 @@ explicitly expose ports, you'll want to do so with `-p`.
 
 I have no Zano, you're welcome to tip me so I have some: `ZxCizQz5yN7Bi8smVVkHLLhLf4rRgiiwca77LsRCvKE1DhJGPmZ9vva3vsGgFQaTu4gj4XaDj4PVghdQ2pnTp9Lh2EVm7WnhA`
 
+## Dockerhub
+
+CI publishes the image here: [https://hub.docker.com/r/canardleteer/zano](https://hub.docker.com/r/canardleteer/zano)
+
 ## Building
 
 ```shell
@@ -23,6 +27,10 @@ docker build \
 ```
 
 ## Usage
+
+- If you don't want to build it locally, it's [available on dockerhub as `canardleteer/zano`](https://hub.docker.com/r/canardleteer/zano).
+  Just replace the image name `zano:latest` with `canardleteer/zano:sometag` below.
+  - I do recommend building and hosting your own image.
 
 ```shell
 # This currently keeps state of "everything," which you may or may not want.
