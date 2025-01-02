@@ -13,7 +13,7 @@ I have no Zano, you're welcome to tip me so I have some: `ZxCizQz5yN7Bi8smVVkHLL
 
 CI publishes the image here: [https://hub.docker.com/r/canardleteer/zano](https://hub.docker.com/r/canardleteer/zano)
 
-## Building
+## Building Zano
 
 ```shell
 # To build the latest Zano from the master branch with 1 core

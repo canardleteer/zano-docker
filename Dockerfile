@@ -16,6 +16,7 @@ ARG ZANO_REF=master
 # Argument to pass to `make -j` & `git clone -j`
 ARG BUILD_WIDTH=1
 
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y git curl build-essential g++ curl autotools-dev libicu-dev libbz2-dev cmake git screen checkinstall zlib1g-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -51,6 +52,7 @@ WORKDIR /zano
 # NOTE(canardleteer): This hasn't been tuned much, I'm sure it can be tuned
 #                     better by specifying a specific version without `-dev`,
 #                     but it's Ubuntu version specific.
+ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y libicu-dev && \
     rm -rf /var/lib/apt/lists/*
