@@ -10,7 +10,7 @@ on:
 
 jobs:
   docker-build:
-    name: docker build and push
+    name: docker build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
