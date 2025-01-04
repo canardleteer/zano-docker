@@ -16,6 +16,19 @@ ARG ZANO_REF=master
 # Argument to pass to `make -j` & `git clone -j`
 ARG BUILD_WIDTH=1
 
+# NOTE(canardleteer): As of ~20241231, the Artifactory mirror of boost has been
+#                     offline happening while in the middle of development of
+#                     this Dockerfile's pipeline, and still present today on
+#                     20250104.
+#
+#                     Changing out the URL of a source dependency is certainly
+#                     not my intent, but one I have to do until the upstream
+#                     mirror preferred by the Zano devs is brought back online.
+#
+#                     Same SHA256 Sum.
+ARG BOOST_SOURCE="https://archives.boost.io/release/1.84.0/source/boost_1_84_0.tar.bz2"
+# ARG BOOST_SOURCE="https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2"
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y git curl build-essential g++ curl autotools-dev libicu-dev libbz2-dev cmake git screen checkinstall zlib1g-dev && \
@@ -25,7 +38,7 @@ WORKDIR /zano
 
 RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --recursive https://github.com/hyle-team/zano.git
 
-RUN curl -OL https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2 && \
+RUN curl -OL ${BOOST_SOURCE} && \
     echo "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454  boost_1_84_0.tar.bz2" | shasum -c && \
     tar -xjf boost_1_84_0.tar.bz2 && mv boost_1_84_0 boost && \
     rm boost_1_84_0.tar.bz2 && cd boost && \
