@@ -1,7 +1,3 @@
-# NOTE(canardleteer): Generally just the instructions from the upstream repo
-#                     to build, I'm sure that can be optimized, but I haven't
-#                     taken the time to do so.
-
 # NOTE(canardleteer): I haven't tested beyond ubuntu:22, but you're welcome
 #                     to experiment with a different base image. Feel free to
 #                     contribute findings or necessary adjustments needed to
@@ -13,21 +9,16 @@ FROM ubuntu:${UBUNTU_VERSION} AS builder
 # Zano Repository Reference
 ARG ZANO_REF=master
 
-# Argument to pass to `make -j` & `git clone -j`
+# Argument to pass to `make -j` & `git clone -j`.
 ARG BUILD_WIDTH=1
 
-# NOTE(canardleteer): As of ~20241231, the Artifactory mirror of boost has been
-#                     offline happening while in the middle of development of
-#                     this Dockerfile's pipeline, and still present today on
-#                     20250104.
-#
-#                     Changing out the URL of a source dependency is certainly
-#                     not my intent, but one I have to do until the upstream
-#                     mirror preferred by the Zano devs is brought back online.
-#
-#                     Same SHA256 Sum.
-ARG BOOST_SOURCE="https://archives.boost.io/release/1.84.0/source/boost_1_84_0.tar.bz2"
-# ARG BOOST_SOURCE="https://boostorg.jfrog.io/artifactory/main/release/1.84.0/source/boost_1_84_0.tar.bz2"
+# Boost Build Configuration
+ARG BOOST_HASH=cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454
+ARG BOOST_VERSION=1.84.0
+
+# OpenSSL Build Configuration
+ARG OPENSSL_HASH="cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8"
+ARG OPENSSL_VERSION=1.1.1w
 
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
@@ -36,26 +27,35 @@ RUN apt update && \
 
 WORKDIR /zano
 
-RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --recursive https://github.com/hyle-team/zano.git
+# Download and layout required sources
+RUN set -ex && export BOOST_VERSION_UNDER="$(echo ${BOOST_VERSION} | sed 's/\./_/g')" && \
+    curl -OL https://downloads.sourceforge.net/project/boost/boost/${BOOST_VERSION}/boost_${BOOST_VERSION_UNDER}.tar.bz2 && \
+    echo "${BOOST_HASH}  boost_${BOOST_VERSION_UNDER}.tar.bz2" | shasum -c && \
+    tar -xjf boost_${BOOST_VERSION_UNDER}.tar.bz2 && mv boost_${BOOST_VERSION_UNDER} boost && \
+    rm boost_${BOOST_VERSION_UNDER}.tar.bz2
 
-RUN curl -OL ${BOOST_SOURCE} && \
-    echo "cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454  boost_1_84_0.tar.bz2" | shasum -c && \
-    tar -xjf boost_1_84_0.tar.bz2 && mv boost_1_84_0 boost && \
-    rm boost_1_84_0.tar.bz2 && cd boost && \
+RUN curl -OL https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz && \
+    echo "${OPENSSL_HASH}  openssl-${OPENSSL_VERSION}.tar.gz" | shasum -c && \
+    tar xaf openssl-${OPENSSL_VERSION}.tar.gz && \
+    rm openssl-${OPENSSL_VERSION}.tar.gz
+
+RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --single-branch --recursive https://github.com/hyle-team/zano.git
+
+# Build Libs
+RUN cd boost && \
     ./bootstrap.sh --with-libraries=system,filesystem,thread,date_time,chrono,regex,serialization,atomic,program_options,locale,timer,log && \
     ./b2 && cd ..
 
-RUN curl -OL https://www.openssl.org/source/openssl-1.1.1w.tar.gz && \
-    echo "cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8  openssl-1.1.1w.tar.gz" | shasum -c && tar xaf openssl-1.1.1w.tar.gz && \
-    cd openssl-1.1.1w && \
+RUN cd openssl-${OPENSSL_VERSION} && \
     ./config --prefix=/zano/openssl --openssldir=/zano/openssl shared zlib && \
     make && make test && make install && cd ..
 
 ENV BOOST_ROOT=/zano/boost
 ENV OPENSSL_ROOT_DIR=/zano/openssl
 
+# Build Zano
 RUN cd zano && mkdir build && cd build && \
-    cmake .. && \
+    cmake -D STATIC=TRUE .. && \
     make -j${BUILD_WIDTH} daemon simplewallet && cd ..
 
 FROM ubuntu:${UBUNTU_VERSION} AS runner
@@ -71,17 +71,23 @@ RUN apt update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN useradd -ms /bin/bash zano && \
-    mkdir /home/zano/.Zano && \
-    chown zano:zano /home/zano/.Zano
+    mkdir /home/zano/.Zano /home/zano/private && \
+    chown zano:zano /home/zano/.Zano /home/zano/private && \
+    chmod og-rwx /home/zano/.Zano /home/zano/private
 
-# NOTE(canardleteer): Blind copy here, boost should probably be cleaned up.
-COPY --from=builder /zano/openssl /zano/openssl 
-COPY --from=builder /zano/boost /zano/boost
 COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
 COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
-COPY ./zanod-startup.sh /usr/bin/zanod-startup.sh
+COPY ./include/zanod-startup.sh /usr/bin/zanod-startup.sh
 
 USER zano
 WORKDIR /home/zano
+
+EXPOSE 11121 11211 33340
+
+# NOTE(canardleteer): It is expected, that the container's host, will be
+#                     responsible for ensuring the privacy of "private".
+#                     It is labeled "private" for the purposes of pointing a
+#                     user running it, towards what they should do.
+VOLUME [ "/home/zano/.Zano" , "/home/zano/private" ]
 
 ENTRYPOINT [ "/usr/bin/zanod-startup.sh" ]
