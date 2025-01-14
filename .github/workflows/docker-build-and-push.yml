@@ -39,6 +39,8 @@ jobs:
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-latest
           labels: ${{ steps.meta.outputs.labels }}
           target: zano-runner
+          provenance: mode=max
+          sbom: true
 
       - name: "build and push target: zanod-distroless"
         uses: docker/build-push-action@v6
@@ -52,6 +54,8 @@ jobs:
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-zanod-distroless-latest
           labels: ${{ steps.meta.outputs.labels }}
           target: zanod-distroless
+          provenance: mode=max
+          sbom: true
 
       - name: "build and push target: simplewallet-distroless"
         uses: docker/build-push-action@v6
@@ -65,3 +69,5 @@ jobs:
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-simplewallet-distroless-latest
           labels: ${{ steps.meta.outputs.labels }}
           target: simplewallet-distroless
+          provenance: mode=max
+          sbom: true
