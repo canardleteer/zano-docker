@@ -27,7 +27,7 @@ jobs:
         with:
           images: ${{ vars.DOCKERHUB_REPO }}
 
-      - name: build docker image
+      - name: "build and push target: zano-runner"
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -38,3 +38,30 @@ jobs:
             ZANO_REF=${{ env.ZANO_REF }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-latest
           labels: ${{ steps.meta.outputs.labels }}
+          target: zano-runner
+
+      - name: "build and push target: zanod-distroless"
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            ZANO_REF=${{ env.ZANO_REF }}
+          tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-zanod-distroless-latest
+          labels: ${{ steps.meta.outputs.labels }}
+          target: zanod-distroless
+
+      - name: "build and push target: simplewallet-distroless"
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          build-args: |
+            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            ZANO_REF=${{ env.ZANO_REF }}
+          tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-simplewallet-distroless-latest
+          labels: ${{ steps.meta.outputs.labels }}
+          target: simplewallet-distroless
