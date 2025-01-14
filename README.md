@@ -10,7 +10,7 @@ I have no Zano, you're welcome to tip me so I have some: `ZxCizQz5yN7Bi8smVVkHLL
 
 CI publishes the image here: [https://hub.docker.com/r/canardleteer/zano](https://hub.docker.com/r/canardleteer/zano)
 
-## Building the `zanod` + `simplewallet` Image
+## Building the simple to use `zanod` + `simplewallet` Image
 
 ```shell
 # To build the latest Zano from the master branch with 1 core
@@ -21,15 +21,50 @@ docker build \
     --build-arg ZANO_REF="2.0.1.367" \
     --build-arg BUILD_WIDTH=$(nproc) \
     -t zano:latest .
+
+# To build a distroless zanod from Zano 2.0.1.367 with all processors on your system.
+docker build \
+    --build-arg ZANO_REF="2.0.1.367" \
+    --build-arg BUILD_WIDTH=$(nproc) \
+    --target=zanod-distroless \
+    -t zanod-distroless:latest .
+
+# To build a distroless simplewallet from Zano 2.0.1.367 with all processors on your system.
+docker build \
+    --build-arg ZANO_REF="2.0.1.367" \
+    --build-arg BUILD_WIDTH=$(nproc) \
+    --target=simplewallet-distroless \
+    -t simplewallet-distroless:latest .
 ```
 
 Additional `ARG`'s are documented inline in the `Dockerfile`.
+
+## Multistage
+
+- `runner` is built by default, which is a Ubuntu 22.04 image by default.
+- `zanod-distroless` is a nonroot distroless Debian 12 image, with just `zanod`.
+  - No usage instructions yet.
+- `simplewallet-distroless` is a nonroot distroless Debian 12 image with just `simplewallet`.
+  - No usage instructions yet.
+
+I am just starting to experiment with the distroless containers, there may be
+some churn there.
+
+## Github Actions
+
+Github Actions build and push these to Dockerhub. **It is highly advisable that
+you build and host your own images instead of using these.** I can promise that
+as a user of Github, I'm being transparent by publishing the logs. I cannot
+promise that the actions taken by Github within their own backend are
+transparent.
+
+I will probably change the Dockerhub label strategy, and make these Actions a
+`strategy.matrix` at some point.
 
 ## Usage
 
 - If you don't want to build it locally, it's [available on dockerhub as `canardleteer/zano`](https://hub.docker.com/r/canardleteer/zano).
   Just replace the image name `zano:latest` with `canardleteer/zano:sometag` below.
-  - I do recommend building and hosting your own image.
 
 ```shell
 # "zano-data" - keeps state of the chain, which you may or may not want.

@@ -58,7 +58,24 @@ RUN cd zano && mkdir build && cd build && \
     cmake -D STATIC=TRUE .. && \
     make -j${BUILD_WIDTH} daemon simplewallet && cd ..
 
-FROM ubuntu:${UBUNTU_VERSION} AS runner
+###############################################################################
+# simplewallet-distroless
+FROM gcr.io/distroless/cc-debian12:nonroot AS simplewallet-distroless
+COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
+VOLUME [ "/home/zano/private" ]
+ENTRYPOINT [ "/usr/bin/simplewallet" ]
+
+###############################################################################
+# zanod-distroless
+FROM gcr.io/distroless/cc-debian12:nonroot AS zanod-distroless
+COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
+EXPOSE 11121 11211
+VOLUME [ "/home/zano/.Zano" ]
+ENTRYPOINT [ "/usr/bin/zanod" ]
+
+###############################################################################
+# zano-runner is a much less restricted container image.
+FROM ubuntu:${UBUNTU_VERSION} AS zano-runner
 
 WORKDIR /zano
 
@@ -82,7 +99,10 @@ COPY ./include/zanod-startup.sh /usr/bin/zanod-startup.sh
 USER zano
 WORKDIR /home/zano
 
-EXPOSE 11121 11211 33340
+# NOTE(canardleteer): Upstream, there is a port 33340 exposed, but it's used
+#                     for a container internal nginx. I'm going to go a
+#                     different way.
+EXPOSE 11121 11211
 
 # NOTE(canardleteer): It is expected, that the container's host, will be
 #                     responsible for ensuring the privacy of "private".
