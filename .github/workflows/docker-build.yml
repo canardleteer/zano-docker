@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         
-      - name: "build and push target: zano-runner"
+      - name: "build target: zano-runner"
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -27,7 +27,7 @@ jobs:
           tags: zano:${{ env.ZANO_REF }}-latest
           target: zano-runner
 
-      - name: "build and push target: zanod-distroless"
+      - name: "build target: zanod-distroless"
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -39,7 +39,7 @@ jobs:
           tags: zanod-distroless:${{ env.ZANO_REF }}-latest
           target: zanod-distroless
 
-      - name: "build and push target: simplewallet-distroless"
+      - name: "build target: simplewallet-distroless"
         uses: docker/build-push-action@v6
         with:
           context: .
