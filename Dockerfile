@@ -1,10 +1,11 @@
-# NOTE(canardleteer): I haven't tested beyond ubuntu:22, but you're welcome
-#                     to experiment with a different base image. Feel free to
-#                     contribute findings or necessary adjustments needed to
-#                     make it more flexable.
-ARG UBUNTU_VERSION=22.04
+# NOTE(canardleteer): I haven't tested building beyond ubuntu:22 for building,
+#                     but you're welcome to experiment with a different base
+#                     image. Feel free to contribute findings or necessary
+#                     adjustments needed to make it more flexable.
+ARG UBUNTU_BUILDER_VERSION=22.04
+ARG UBUNTU_RUNNER_VERSION=24.04
 
-FROM ubuntu:${UBUNTU_VERSION} AS builder
+FROM ubuntu:${UBUNTU_BUILDER_VERSION} AS builder
 
 # Zano Repository Reference
 ARG ZANO_REF=master
@@ -62,7 +63,7 @@ RUN cd zano && mkdir build && cd build && \
 # simplewallet-distroless
 FROM gcr.io/distroless/cc-debian12:nonroot AS simplewallet-distroless
 COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
-VOLUME [ "/home/zano/private" ]
+VOLUME [ "/home/nonroot/private" ]
 ENTRYPOINT [ "/usr/bin/simplewallet" ]
 
 ###############################################################################
@@ -70,12 +71,12 @@ ENTRYPOINT [ "/usr/bin/simplewallet" ]
 FROM gcr.io/distroless/cc-debian12:nonroot AS zanod-distroless
 COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
 EXPOSE 11121 11211
-VOLUME [ "/home/zano/.Zano" ]
+VOLUME [ "/home/nonroot/.Zano" ]
 ENTRYPOINT [ "/usr/bin/zanod" ]
 
 ###############################################################################
 # zano-runner is a much less restricted container image.
-FROM ubuntu:${UBUNTU_VERSION} AS zano-runner
+FROM ubuntu:${UBUNTU_RUNNER_VERSION} AS zano-runner
 
 WORKDIR /zano
 
@@ -87,17 +88,21 @@ RUN apt update && \
     apt install -y libicu-dev && \
     rm -rf /var/lib/apt/lists/*
 
-RUN useradd -ms /bin/bash zano && \
-    mkdir /home/zano/.Zano /home/zano/private && \
-    chown zano:zano /home/zano/.Zano /home/zano/private && \
-    chmod og-rwx /home/zano/.Zano /home/zano/private
+# RUN useradd -ms /bin/bash zano && \
+#     mkdir /home/zano/.Zano /home/zano/private && \
+#     chown zano:zano /home/zano/.Zano /home/zano/private && \
+#     chmod og-rwx /home/zano/.Zano /home/zano/private
+RUN mkdir /home/ubuntu/.Zano /home/ubuntu/private && \
+    chown ubuntu:ubuntu /home/ubuntu/.Zano /home/ubuntu/private && \
+    chmod og-rwx /home/ubuntu/.Zano /home/ubuntu/private
+
 
 COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
 COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
 COPY ./include/zanod-startup.sh /usr/bin/zanod-startup.sh
 
-USER zano
-WORKDIR /home/zano
+USER ubuntu
+WORKDIR /home/ubuntu
 
 # NOTE(canardleteer): Upstream, there is a port 33340 exposed, but it's used
 #                     for a container internal nginx. I'm going to go a
@@ -108,6 +113,6 @@ EXPOSE 11121 11211
 #                     responsible for ensuring the privacy of "private".
 #                     It is labeled "private" for the purposes of pointing a
 #                     user running it, towards what they should do.
-VOLUME [ "/home/zano/.Zano" , "/home/zano/private" ]
+VOLUME [ "/home/ubuntu/.Zano" , "/home/ubuntu/private" ]
 
 ENTRYPOINT [ "/usr/bin/zanod-startup.sh" ]
