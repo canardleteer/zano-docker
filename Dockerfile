@@ -9,6 +9,7 @@ FROM ubuntu:${UBUNTU_BUILDER_VERSION} AS builder
 
 # Zano Repository Reference
 ARG ZANO_REF=master
+ARG ZANO_REPO="https://github.com/hyle-team/zano.git"
 
 # Argument to pass to `make -j` & `git clone -j`.
 ARG BUILD_WIDTH=1
@@ -18,7 +19,7 @@ ARG BOOST_HASH=cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454
 ARG BOOST_VERSION=1.84.0
 
 # OpenSSL Build Configuration
-ARG OPENSSL_HASH="cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8"
+ARG OPENSSL_HASH=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
 ARG OPENSSL_VERSION=1.1.1w
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -40,7 +41,7 @@ RUN curl -OL https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz &&
     tar xaf openssl-${OPENSSL_VERSION}.tar.gz && \
     rm openssl-${OPENSSL_VERSION}.tar.gz
 
-RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --single-branch --recursive https://github.com/hyle-team/zano.git
+RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --single-branch --recursive ${ZANO_REPO}
 
 # Build Libs
 RUN cd boost && \

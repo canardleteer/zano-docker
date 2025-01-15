@@ -1,7 +1,6 @@
-name: docker build
+name: docker build and push
 
 env:
-    ZANO_REF: 2.0.1.367
     BUILD_WIDTH: 16
 
 on:
@@ -11,6 +10,9 @@ on:
 jobs:
   docker-build-build:
     name: docker build and push
+    strategy:
+      matrix:
+        zano-ref: [2.0.1.367, master]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -23,6 +25,10 @@ jobs:
 
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
+
+      - name: Set SHA_SHORT for commit
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: extract metadata (tags, labels) for docker
         id: meta
@@ -38,10 +44,10 @@ jobs:
           push: true
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
-            ZANO_REF=${{ env.ZANO_REF }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-latest
-          labels: ${{ steps.meta.outputs.labels }}
+            ZANO_REF=${{ matrix.zano-ref }}
+          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }}
           target: zano-runner
+          labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
 
@@ -53,10 +59,10 @@ jobs:
           push: true
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
-            ZANO_REF=${{ env.ZANO_REF }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-zanod-distroless-latest
-          labels: ${{ steps.meta.outputs.labels }}
+            ZANO_REF=${{ matrix.zano-ref }}
+          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }}
           target: zanod-distroless
+          labels: ${{ steps.meta.outputs.labels }}
           provenance: mode=max
           sbom: true
 
@@ -68,8 +74,8 @@ jobs:
           push: true
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
-            ZANO_REF=${{ env.ZANO_REF }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ env.ZANO_REF }}-simplewallet-distroless-latest
+            ZANO_REF=${{ matrix.zano-ref }}
+          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }}
           labels: ${{ steps.meta.outputs.labels }}
           target: simplewallet-distroless
           provenance: mode=max
