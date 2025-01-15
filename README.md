@@ -128,7 +128,7 @@ docker stop zanod
 docker rm zanod
 ```
 
-## Usage Of `zanod-distroless`
+## Usage Of `simplewallet-distroless`
 
 ```shell
 mkdir -p private
