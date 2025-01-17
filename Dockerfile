@@ -85,14 +85,7 @@ WORKDIR /zano
 #                     better by specifying a specific version without `-dev`,
 #                     but it's Ubuntu version specific.
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt update && \
-    apt install -y libicu-dev && \
-    rm -rf /var/lib/apt/lists/*
 
-# RUN useradd -ms /bin/bash zano && \
-#     mkdir /home/zano/.Zano /home/zano/private && \
-#     chown zano:zano /home/zano/.Zano /home/zano/private && \
-#     chmod og-rwx /home/zano/.Zano /home/zano/private
 RUN mkdir /home/ubuntu/.Zano /home/ubuntu/private && \
     chown ubuntu:ubuntu /home/ubuntu/.Zano /home/ubuntu/private && \
     chmod og-rwx /home/ubuntu/.Zano /home/ubuntu/private
