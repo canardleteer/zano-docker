@@ -12,7 +12,7 @@ jobs:
     name: docker build
     strategy:
       matrix:
-        zano-ref: [2.0.1.367, master]
+        zano-ref: [2.1.0.382, master]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -83,7 +83,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # NOTE(canardleterr): For some reason, simplewallet has an exit status of 1 with --version.
-      # - name: "simple test: zanod-distroless"
-      #   run: |
-      #     docker run --rm ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
+      - name: "simple test: zanod-distroless"
+        run: |
+          docker run --rm ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
