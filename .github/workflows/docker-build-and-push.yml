@@ -87,7 +87,7 @@ jobs:
     name: docker build and push (testnet)
     strategy:
       matrix:
-        zano-ref: [2.1.5.397, master]
+        zano-ref: [develop, master]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
