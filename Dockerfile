@@ -22,6 +22,11 @@ ARG BOOST_VERSION=1.84.0
 ARG OPENSSL_HASH=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
 ARG OPENSSL_VERSION=1.1.1w
 
+# Additional arguments to add to the CMake command while building Zano.
+#
+# Testnet support is enabled with: `-D TESTNET=TRUE`
+ARG ZANO_CMAKE_ARGS=""
+
 ENV DEBIAN_FRONTEND=noninteractive
 RUN apt update && \
     apt install -y git curl build-essential g++ curl autotools-dev libicu-dev libbz2-dev cmake git screen checkinstall zlib1g-dev && \
@@ -57,7 +62,7 @@ ENV OPENSSL_ROOT_DIR=/zano/openssl
 
 # Build Zano
 RUN cd zano && mkdir build && cd build && \
-    cmake -D STATIC=TRUE .. && \
+    cmake -D STATIC=TRUE ${ZANO_CMAKE_ARGS} .. && \
     make -j${BUILD_WIDTH} daemon simplewallet && cd ..
 
 ###############################################################################
