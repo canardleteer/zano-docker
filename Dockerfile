@@ -93,7 +93,7 @@ RUN mkdir /home/ubuntu/.Zano /home/ubuntu/private && \
 
 COPY --from=builder /zano/zano/build/src/simplewallet /usr/bin/simplewallet
 COPY --from=builder /zano/zano/build/src/zanod /usr/bin/zanod
-COPY ./include/zanod-startup.sh /usr/bin/zanod-startup.sh
+COPY ./include/zano-startup.sh /usr/bin/zano-startup.sh
 
 USER ubuntu
 WORKDIR /home/ubuntu
@@ -109,4 +109,4 @@ EXPOSE 11121 11211
 #                     user running it, towards what they should do.
 VOLUME [ "/home/ubuntu/.Zano" , "/home/ubuntu/private" ]
 
-ENTRYPOINT [ "/usr/bin/zanod-startup.sh" ]
+ENTRYPOINT [ "/usr/bin/zano-startup.sh" ]

@@ -101,6 +101,19 @@ docker exec -it zano-runner /usr/bin/simplewallet --generate-new-wallet=private/
 docker exec -it zano-runner /usr/bin/simplewallet --wallet=private/test-wallet
 docker exec -it zano-runner /usr/bin/simplewallet --wallet=private/test-wallet --command wallet_bc_height
 
+# You can also launch the wallet from the image directly by setting
+# `USE_WALLET_BINARY` launch instead of the `zanod` binary if you
+# have additional constraints on the entrypoint or command.
+docker run -it --rm --name zano-runner \
+  -v ${PWD}/zano-data:/home/ubuntu/.Zano \
+  -v ${PWD}/private:/home/ubuntu/private \
+  -e USE_WALLET_BINARY=true \
+  -p 12233:12233 zano-runner:latest \
+  --wallet=private/test-wallet \
+  --rpc-bind-ip=0.0.0.0 \
+  --rpc-bind-port=12233 \
+  --daemon-address=192.168.44.49:11211
+
 # Stop and remove the container, preserving data for the next run.
 # Alternatively, you can use "run --rm" if you don't keep it around for debugging.
 docker stop zano-runner
