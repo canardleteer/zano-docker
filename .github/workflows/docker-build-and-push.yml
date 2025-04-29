@@ -1,7 +1,7 @@
 name: docker build and push
 
 env:
-    BUILD_WIDTH: 16
+    BUILD_WIDTH: 8
 
 on:
   push:
