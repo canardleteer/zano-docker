@@ -20,24 +20,24 @@ CI publishes the image here:
 # To build the latest Zano from the master branch with 1 core
 docker build -t zano:latest .
 
-# To build Zano 2.1.5.397 with all processors on your system.
+# To build Zano 2.1.7.411 with all processors on your system.
 docker build \
-    --build-arg ZANO_REF="2.1.5.397" \
+    --build-arg ZANO_REF="2.1.7.411" \
     --build-arg BUILD_WIDTH=$(nproc) \
     -t zano-runner:latest .
 
-# To build a distroless zanod from Zano 2.1.5.397 with all processors on
+# To build a distroless zanod from Zano 2.1.7.411 with all processors on
 # your system.
 docker build \
-    --build-arg ZANO_REF="2.1.5.397" \
+    --build-arg ZANO_REF="2.1.7.411" \
     --build-arg BUILD_WIDTH=$(nproc) \
     --target=zanod-distroless \
     -t zanod-distroless:latest .
 
-# To build a distroless simplewallet from Zano 2.1.5.397 with all processors
+# To build a distroless simplewallet from Zano 2.1.7.411 with all processors
 # on your system.
 docker build \
-    --build-arg ZANO_REF="2.1.5.397" \
+    --build-arg ZANO_REF="2.1.7.411" \
     --build-arg BUILD_WIDTH=$(nproc) \
     --target=simplewallet-distroless \
     -t simplewallet-distroless:latest .
