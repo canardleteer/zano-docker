@@ -12,7 +12,7 @@ jobs:
     name: docker build and push
     strategy:
       matrix:
-        zano-ref: [2.1.5.397, 2.1.7.411, master]
+        zano-ref: [2.1.7.411, 2.1.7.424, master]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
