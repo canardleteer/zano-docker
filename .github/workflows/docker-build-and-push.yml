@@ -23,6 +23,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: setup qemu
+        uses: docker/setup-qemu-action@v3
+
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
 
@@ -42,6 +45,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -57,6 +61,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -72,6 +77,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -98,6 +104,9 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
+      - name: setup qemu (testnet)
+        uses: docker/setup-qemu-action@v3
+
       - name: setup buildx (testnet)
         uses: docker/setup-buildx-action@v3
 
@@ -117,6 +126,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -133,6 +143,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -149,6 +160,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
+          platforms: linux/amd64,linux/arm64
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
