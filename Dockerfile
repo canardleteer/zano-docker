@@ -19,8 +19,12 @@ ARG BOOST_HASH=cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454
 ARG BOOST_VERSION=1.84.0
 
 # OpenSSL Build Configuration
-ARG OPENSSL_HASH=cf3098950cb4d853ad95c0841f1f9c6d3dc102dccfcacd521d93925208b76ac8
-ARG OPENSSL_VERSION=1.1.1w
+# NOTE(canardleteer): 2.2.1.506 recommends 3.5.7 LTS. 2.1.x still lists
+#                     1.1.1w, but has supported OpenSSL 3.x since 2.1.0.382.
+# OPENSSL_HASH is the official SHA-256 for openssl-3.5.7.tar.gz:
+# https://github.com/openssl/openssl/releases/download/openssl-3.5.7/openssl-3.5.7.tar.gz.sha256
+ARG OPENSSL_HASH=a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8
+ARG OPENSSL_VERSION=3.5.7
 
 # Additional arguments to add to the CMake command while building Zano.
 #
@@ -41,7 +45,7 @@ RUN set -ex && export BOOST_VERSION_UNDER="$(echo ${BOOST_VERSION} | sed 's/\./_
     tar -xjf boost_${BOOST_VERSION_UNDER}.tar.bz2 && mv boost_${BOOST_VERSION_UNDER} boost && \
     rm boost_${BOOST_VERSION_UNDER}.tar.bz2
 
-RUN curl -OL https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz && \
+RUN curl -OL https://github.com/openssl/openssl/releases/download/openssl-${OPENSSL_VERSION}/openssl-${OPENSSL_VERSION}.tar.gz && \
     echo "${OPENSSL_HASH}  openssl-${OPENSSL_VERSION}.tar.gz" | shasum -c && \
     tar xaf openssl-${OPENSSL_VERSION}.tar.gz && \
     rm openssl-${OPENSSL_VERSION}.tar.gz
@@ -54,8 +58,8 @@ RUN cd boost && \
     ./b2 && cd ..
 
 RUN cd openssl-${OPENSSL_VERSION} && \
-    ./config --prefix=/zano/openssl --openssldir=/zano/openssl shared zlib && \
-    make && make test && make install && cd ..
+    ./config --prefix=/zano/openssl --openssldir=/zano/openssl --libdir=lib no-comp shared && \
+    make && make test && make install_sw install_ssldirs && cd ..
 
 ENV BOOST_ROOT=/zano/boost
 ENV OPENSSL_ROOT_DIR=/zano/openssl
