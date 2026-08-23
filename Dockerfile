@@ -26,9 +26,6 @@ ARG BOOST_VERSION=1.84.0
 ARG OPENSSL_HASH=a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e8
 ARG OPENSSL_VERSION=3.5.7
 
-# Set automatically by buildx (amd64, arm64, ...).
-ARG TARGETARCH
-
 # Additional arguments to add to the CMake command while building Zano.
 #
 # Testnet support is enabled with: `-D TESTNET=TRUE`
@@ -60,16 +57,14 @@ RUN cd boost && \
     ./bootstrap.sh --with-libraries=system,filesystem,thread,date_time,chrono,regex,serialization,atomic,program_options,locale,timer,log && \
     ./b2 && cd ..
 
-# NOTE(canardleteer): OpenSSL 3.5.7 `make test` fails under QEMU arm64 on
-#                     70-test_quic_multistream, and the suite itself takes
-#                     ~1.5h there, which blows the 6h Actions budget. Keep
-#                     the full test run on amd64; install without tests on
-#                     other TARGETARCH values.
+# NOTE(canardleteer): Skip `make test`. The 3.5.7 suite fails
+#                     70-test_quic_multistream under QEMU arm64 and is
+#                     slow enough on amd64 that we do not want it in CI.
+#                     The tarball is hash-pinned; we only need the
+#                     installed libs for the Zano build.
 RUN cd openssl-${OPENSSL_VERSION} && \
     ./config --prefix=/zano/openssl --openssldir=/zano/openssl --libdir=lib no-comp shared && \
-    make && \
-    if [ "${TARGETARCH:-amd64}" = "amd64" ]; then make test; fi && \
-    make install_sw install_ssldirs && cd ..
+    make && make install_sw install_ssldirs && cd ..
 
 ENV BOOST_ROOT=/zano/boost
 ENV OPENSSL_ROOT_DIR=/zano/openssl
