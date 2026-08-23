@@ -135,6 +135,10 @@ docker exec -it zano-runner /usr/bin/simplewallet --wallet=private/test-wallet -
 # You can also launch the wallet from the image directly by setting
 # `USE_WALLET_BINARY` launch instead of the `zanod` binary if you
 # have additional constraints on the entrypoint or command.
+#
+# NOTE: Since Zano 2.2.x, wallet RPC refuses to start without auth.
+#       This demo keeps the old open listener via `--unsecure-no-auth`.
+#       Prefer `--jwt-secret <secret>` if anything can reach this port.
 docker run -it --rm --name zano-runner \
   -v ${PWD}/zano-data:/home/ubuntu/.Zano \
   -v ${PWD}/private:/home/ubuntu/private \
@@ -143,6 +147,7 @@ docker run -it --rm --name zano-runner \
   --wallet=private/test-wallet \
   --rpc-bind-ip=0.0.0.0 \
   --rpc-bind-port=12233 \
+  --unsecure-no-auth \
   --daemon-address=192.168.44.49:11211
 
 # Stop and remove the container, preserving data for the next run.
