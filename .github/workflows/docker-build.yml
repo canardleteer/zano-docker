@@ -13,9 +13,13 @@ jobs:
     strategy:
       matrix:
         zano-ref: [2.2.1.505, 2.2.1.506, master]
+        platform: [linux/amd64, linux/arm64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: setup qemu
+        uses: docker/setup-qemu-action@v3
 
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
@@ -31,6 +35,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -43,7 +48,7 @@ jobs:
 
       - name: "simple test: zano-runner"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: zanod-distroless"
         uses: docker/build-push-action@v6
@@ -52,6 +57,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -64,7 +70,7 @@ jobs:
 
       - name: "simple test: zanod-distroless"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: simplewallet-distroless"
         uses: docker/build-push-action@v6
@@ -73,6 +79,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -85,7 +92,7 @@ jobs:
 
       - name: "simple test: zanod-distroless"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
 
   # TESTNET #####################################################################
 
@@ -94,9 +101,13 @@ jobs:
     strategy:
       matrix:
         zano-ref: [develop, master]
+        platform: [linux/amd64, linux/arm64]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: setup qemu (testnet)
+        uses: docker/setup-qemu-action@v3
 
       - name: setup buildx (testnet)
         uses: docker/setup-buildx-action@v3
@@ -112,6 +123,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -125,7 +137,7 @@ jobs:
 
       - name: "simple test: zano-runner (testnet)"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: zanod-distroless (testnet)"
         uses: docker/build-push-action@v6
@@ -134,6 +146,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -147,7 +160,7 @@ jobs:
 
       - name: "simple test: zanod-distroless (testnet)"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: simplewallet-distroless (testnet)"
         uses: docker/build-push-action@v6
@@ -156,6 +169,7 @@ jobs:
           file: ./Dockerfile
           push: false
           load: true
+          platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
@@ -169,4 +183,4 @@ jobs:
 
       - name: "simple test: zanod-distroless (testnet)"
         run: |
-          docker run --rm ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
+          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
