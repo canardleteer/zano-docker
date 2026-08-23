@@ -16,20 +16,20 @@ jobs:
         platform: [linux/amd64, linux/arm64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: setup qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: setup buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set SHA_SHORT for commit
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: "build target: zano-runner"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -51,7 +51,7 @@ jobs:
           docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: zanod-distroless"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -73,7 +73,7 @@ jobs:
           docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: simplewallet-distroless"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -104,20 +104,20 @@ jobs:
         platform: [linux/amd64, linux/arm64]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: setup qemu (testnet)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: setup buildx (testnet)
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set SHA_SHORT for commit (testnet)
         id: vars
         run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
 
       - name: "build target: zano-runner (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -140,7 +140,7 @@ jobs:
           docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: zanod-distroless (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -163,7 +163,7 @@ jobs:
           docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_TESTNET_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
 
       - name: "build target: simplewallet-distroless (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile

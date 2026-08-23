@@ -15,19 +15,19 @@ jobs:
         zano-ref: [2.2.1.505, 2.2.1.506, master]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: login to dockerhub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: setup qemu
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: setup buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set SHA_SHORT for commit
         id: vars
@@ -35,12 +35,12 @@ jobs:
 
       - name: extract metadata (tags, labels) for docker
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ vars.DOCKERHUB_REPO }}
 
       - name: "build and push target: zano-runner"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -56,7 +56,7 @@ jobs:
           sbom: true
 
       - name: "build and push target: zanod-distroless"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -72,7 +72,7 @@ jobs:
           sbom: true
 
       - name: "build and push target: simplewallet-distroless"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -96,19 +96,19 @@ jobs:
         zano-ref: [develop, master]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: login to dockerhub (testnet)
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: setup qemu (testnet)
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: setup buildx (testnet)
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Set SHA_SHORT for commit (testnet)
         id: vars
@@ -116,12 +116,12 @@ jobs:
 
       - name: extract metadata (tags, labels) for docker (testnet)
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ${{ vars.DOCKERHUB_TESTNET_REPO }}
 
       - name: "build and push target: zano-runner (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -138,7 +138,7 @@ jobs:
           sbom: true
 
       - name: "build and push target: zanod-distroless (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
@@ -155,7 +155,7 @@ jobs:
           sbom: true
 
       - name: "build and push target: simplewallet-distroless (testnet)"
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
