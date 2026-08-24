@@ -65,14 +65,15 @@ be intermingling of user IDs in the directories if you're running locally.
 
 ## Github Actions
 
-Github Actions build and push these to Dockerhub. **It is highly advisable that
-you build and host your own images instead of using these.** I can promise that
-as a user of Github, I'm being transparent by publishing the logs. I cannot
-promise that the actions taken by Github within their own backend are
-transparent.
+PRs and pushes to `main` run the same per-arch jobs (`release` /
+`release - 1` × amd64 / arm64): native compile, then `--version`. Amd64 uses
+`ubuntu-latest`; arm64 uses `ubuntu-24.04-arm` (not QEMU). After those pass
+on `main`, an index job publishes multi-arch tags to Docker Hub.
 
-I will probably change the Dockerhub label strategy, and make these Actions a
-`strategy.matrix` at some point.
+**It is highly advisable that you build and host your own images instead of
+using these.** I can promise that as a user of Github, I'm being transparent
+by publishing the logs. I cannot promise that the actions taken by Github
+within their own backend are transparent.
 
 ## Usage Of `zano-runner`
 
