@@ -9,10 +9,15 @@ on:
 
 jobs:
   docker-build-build:
-    name: docker build and push
+    # Same channel names as the PR workflow; each job publishes both arches.
+    name: ${{ matrix.channel }}
     strategy:
       matrix:
-        zano-ref: [2.2.1.505, 2.2.1.506]
+        include:
+          - channel: release
+            zano-ref: 2.2.1.506
+          - channel: release - 1
+            zano-ref: 2.2.1.505
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

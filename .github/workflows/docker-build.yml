@@ -9,11 +9,29 @@ on:
 
 jobs:
   docker-build:
-    name: docker build
+    # Stable check names for branch rules: "release (amd64)", "release (arm64)",
+    # "release - 1 (amd64)", "release - 1 (arm64)". Slide zano-ref when bumping;
+    # leave channel/arch as-is.
+    name: ${{ matrix.channel }} (${{ matrix.arch }})
     strategy:
       matrix:
-        zano-ref: [2.2.1.505, 2.2.1.506]
-        platform: [linux/amd64, linux/arm64]
+        include:
+          - channel: release
+            arch: amd64
+            zano-ref: 2.2.1.506
+            platform: linux/amd64
+          - channel: release
+            arch: arm64
+            zano-ref: 2.2.1.506
+            platform: linux/arm64
+          - channel: release - 1
+            arch: amd64
+            zano-ref: 2.2.1.505
+            platform: linux/amd64
+          - channel: release - 1
+            arch: arm64
+            zano-ref: 2.2.1.505
+            platform: linux/arm64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
