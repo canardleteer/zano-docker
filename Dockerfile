@@ -8,7 +8,7 @@ ARG UBUNTU_RUNNER_VERSION=24.04
 FROM ubuntu:${UBUNTU_BUILDER_VERSION} AS builder
 
 # Zano Repository Reference
-ARG ZANO_REF=master
+ARG ZANO_REF=2.2.1.506
 ARG ZANO_REPO="https://github.com/hyle-team/zano.git"
 
 # Argument to pass to `make -j` & `git clone -j`.
@@ -27,8 +27,6 @@ ARG OPENSSL_HASH=a8c0d28a529ca480f9f36cf5792e2cd21984552a3c8e4aa11a24aa31aeac98e
 ARG OPENSSL_VERSION=3.5.7
 
 # Additional arguments to add to the CMake command while building Zano.
-#
-# Testnet support is enabled with: `-D TESTNET=TRUE`
 ARG ZANO_CMAKE_ARGS=""
 
 ENV DEBIAN_FRONTEND=noninteractive

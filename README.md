@@ -17,7 +17,7 @@ CI publishes the image here:
 ## Building the simple to use `zanod` + `simplewallet` Image
 
 ```shell
-# To build the latest Zano from the master branch with 1 core
+# To build Zano 2.2.1.506 (the default ZANO_REF) with 1 core
 docker build -t zano:latest .
 
 # To build Zano 2.2.1.506 with all processors on your system.
@@ -44,37 +44,6 @@ docker build \
 ```
 
 Additional `ARG`'s are documented inline in the `Dockerfile`.
-
-## Testnet Support
-
-- You can build Testnet builds of Zano, by adding `--build-arg
-  ZANO_CMAKE_ARGS="-D TESTNET=TRUE"`
-- The images are pipeline generated and pushed to:
-  [canardleteer/zano-testnet](https://hub.docker.com/r/canardleteer/zano-testnet)
-  on DockerHub, hopefully to add additional isolation.
-  - I care about supporting these builds less, mostly just if I'm using them.
-- You should aim to repoint ALL exposed ports to be different ports than the
-  normal Zano ports to prevent confusion.
-  - Example: Testnet runs p2p, on port `11311` instead of the Mainnet port of
-    `11211`.
-
-```shell
-# To build Zano TESTNET-master with all processors on your system.
-docker build \
-    --build-arg ZANO_REF="master" \
-    --build-arg BUILD_WIDTH=$(nproc) \
-    --build-arg ZANO_CMAKE_ARGS="-D TESTNET=TRUE" \
-    -t zano-testnet-runner:latest .
-```
-
-You should see `testnet` in the version, for example:
-
-```shell
-$ docker run -it --rm zano-testnet-runner:latest --version
-Zano_testnet v2.1.5.397[d85b94d]
-```
-
-> ***Use All TESTNET Builds With Caution Around Volume Mounts***
 
 ## Multistage & Differences
 
