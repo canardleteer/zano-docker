@@ -1,8 +1,5 @@
 name: docker build
 
-env:
-    BUILD_WIDTH: 8
-
 on:
   pull_request:
     branches: [ "main" ]
@@ -14,24 +11,29 @@ jobs:
     # leave channel/arch as-is.
     name: ${{ matrix.channel }} (${{ matrix.arch }})
     strategy:
+      # build-width is compile jobs only (Boost/OpenSSL/Zano), per platform.
       matrix:
         include:
           - channel: release
             arch: amd64
             zano-ref: 2.2.1.506
             platform: linux/amd64
+            build-width: 8
           - channel: release
             arch: arm64
             zano-ref: 2.2.1.506
             platform: linux/arm64
+            build-width: 4
           - channel: release - 1
             arch: amd64
             zano-ref: 2.2.1.505
             platform: linux/amd64
+            build-width: 8
           - channel: release - 1
             arch: arm64
             zano-ref: 2.2.1.505
             platform: linux/arm64
+            build-width: 4
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -55,7 +57,7 @@ jobs:
           load: true
           platforms: ${{ matrix.platform }}
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }}
           target: zano-runner
@@ -77,7 +79,7 @@ jobs:
           load: true
           platforms: ${{ matrix.platform }}
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }}
           target: zanod-distroless
@@ -99,7 +101,7 @@ jobs:
           load: true
           platforms: ${{ matrix.platform }}
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
+            BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }}
           target: simplewallet-distroless
