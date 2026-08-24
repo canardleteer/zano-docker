@@ -1,15 +1,14 @@
 name: docker build and push
 
-env:
-    BUILD_WIDTH: 8
-
 on:
   push:
     branches: [ "main" ]
 
 jobs:
   docker-build-build:
-    # Same channel names as the PR workflow; each job publishes both arches.
+    # Same channel names as the PR workflow; each job compiles both arches
+    # then pushes. Compile jobs come from the Dockerfile (8/amd64, 4/arm64)
+    # unless BUILD_WIDTH is passed; push itself has no job-count.
     name: ${{ matrix.channel }}
     strategy:
       matrix:
@@ -52,7 +51,6 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }}
           target: zano-runner
@@ -68,7 +66,6 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }}
           target: zanod-distroless
@@ -84,7 +81,6 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            BUILD_WIDTH=${{ env.BUILD_WIDTH }}
             ZANO_REF=${{ matrix.zano-ref }}
           tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }}
           labels: ${{ steps.meta.outputs.labels }}

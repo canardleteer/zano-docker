@@ -11,8 +11,11 @@ FROM ubuntu:${UBUNTU_BUILDER_VERSION} AS builder
 ARG ZANO_REF=2.2.1.506
 ARG ZANO_REPO="https://github.com/hyle-team/zano.git"
 
-# Argument to pass to `make -j` & `git clone -j`.
-ARG BUILD_WIDTH=1
+# Optional compile-job override (`make -j` / `./b2 -j`). Leave unset to
+# use 8 on amd64 and 4 on arm64. Only the compile RUNs consume this;
+# fetch/push do not.
+ARG BUILD_WIDTH
+ARG TARGETARCH
 
 # Boost Build Configuration
 ARG BOOST_HASH=cc4b893acf645c9d4b698e9a0f08ca8846aa5d6c68275c14c3e7949c24109454
@@ -48,12 +51,21 @@ RUN curl -OL https://github.com/openssl/openssl/releases/download/openssl-${OPEN
     tar xaf openssl-${OPENSSL_VERSION}.tar.gz && \
     rm openssl-${OPENSSL_VERSION}.tar.gz
 
-RUN git clone --branch ${ZANO_REF} -j${BUILD_WIDTH} --single-branch --recursive ${ZANO_REPO}
+RUN git clone --branch ${ZANO_REF} --single-branch --recursive ${ZANO_REPO}
+
+# Compile jobs: explicit BUILD_WIDTH wins (CI matrix / local); otherwise
+# 8 on amd64 and 4 on arm64. Written once so Boost/OpenSSL/Zano share it.
+ARG BUILD_WIDTH
+ARG TARGETARCH
+RUN if [ -n "${BUILD_WIDTH}" ]; then j="${BUILD_WIDTH}"; \
+    elif [ "${TARGETARCH}" = "amd64" ]; then j=8; \
+    else j=4; fi && \
+    echo "${j}" > /zano/.compile-jobs
 
 # Build Libs
 RUN cd boost && \
     ./bootstrap.sh --with-libraries=system,filesystem,thread,date_time,chrono,regex,serialization,atomic,program_options,locale,timer,log && \
-    ./b2 && cd ..
+    ./b2 -j"$(cat /zano/.compile-jobs)" && cd ..
 
 # NOTE(canardleteer): Skip `make test`. The 3.5.7 suite fails
 #                     70-test_quic_multistream under QEMU arm64 and is
@@ -62,7 +74,7 @@ RUN cd boost && \
 #                     installed libs for the Zano build.
 RUN cd openssl-${OPENSSL_VERSION} && \
     ./config --prefix=/zano/openssl --openssldir=/zano/openssl --libdir=lib no-comp shared && \
-    make && make install_sw install_ssldirs && cd ..
+    make -j"$(cat /zano/.compile-jobs)" && make install_sw install_ssldirs && cd ..
 
 ENV BOOST_ROOT=/zano/boost
 ENV OPENSSL_ROOT_DIR=/zano/openssl
@@ -70,7 +82,7 @@ ENV OPENSSL_ROOT_DIR=/zano/openssl
 # Build Zano
 RUN cd zano && mkdir build && cd build && \
     cmake -D STATIC=TRUE ${ZANO_CMAKE_ARGS} .. && \
-    make -j${BUILD_WIDTH} daemon simplewallet && cd ..
+    make -j"$(cat /zano/.compile-jobs)" daemon simplewallet && cd ..
 
 ###############################################################################
 # simplewallet-distroless
