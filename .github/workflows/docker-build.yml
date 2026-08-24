@@ -3,14 +3,23 @@ name: docker build
 on:
   pull_request:
     branches: [ "main" ]
+  push:
+    branches: [ "main" ]
 
 jobs:
   docker-build:
+    # Same jobs on PRs and on main, so merge-time tests match what we ship.
+    # Native runners only: amd64 on ubuntu-latest, arm64 on ubuntu-24.04-arm.
+    # Do not compile arm64 with QEMU. load: true is single-platform, so the
+    # Hub index is assembled afterwards from these images, not from a
+    # dual-platform buildx on an amd64 runner.
+    #
     # Stable check names for branch rules: "release (amd64)", "release (arm64)",
     # "release - 1 (amd64)", "release - 1 (arm64)". Slide zano-ref when bumping;
     # leave channel/arch as-is.
     name: ${{ matrix.channel }} (${{ matrix.arch }})
     strategy:
+      fail-fast: false
       # build-width is compile jobs only (Boost/OpenSSL/Zano), per platform.
       matrix:
         include:
@@ -18,28 +27,36 @@ jobs:
             arch: amd64
             zano-ref: 2.2.1.506
             platform: linux/amd64
+            runner: ubuntu-latest
             build-width: 8
           - channel: release
             arch: arm64
             zano-ref: 2.2.1.506
             platform: linux/arm64
+            runner: ubuntu-24.04-arm
             build-width: 4
           - channel: release - 1
             arch: amd64
             zano-ref: 2.2.1.505
             platform: linux/amd64
+            runner: ubuntu-latest
             build-width: 8
           - channel: release - 1
             arch: arm64
             zano-ref: 2.2.1.505
             platform: linux/arm64
+            runner: ubuntu-24.04-arm
             build-width: 4
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v7
 
-      - name: setup qemu
-        uses: docker/setup-qemu-action@v4
+      - name: login to dockerhub
+        if: github.event_name == 'push'
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: setup buildx
         uses: docker/setup-buildx-action@v4
@@ -53,63 +70,131 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          push: false
-          load: true
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
           platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }}
+          tags: |
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ matrix.arch }}
           target: zano-runner
-          # provenance: mode=max
-          # sbom: true
+          provenance: ${{ github.event_name == 'push' && 'mode=max' || false }}
+          sbom: ${{ github.event_name == 'push' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: "simple test: zano-runner"
+        env:
+          IMAGE: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
         run: |
-          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zano-runner-${{ steps.vars.outputs.sha_short }} --version
+          if [ "${{ github.event_name }}" = "push" ]; then
+            docker pull --platform ${{ matrix.platform }} "${IMAGE}"
+          fi
+          docker run --rm --platform ${{ matrix.platform }} "${IMAGE}" --version
 
       - name: "build target: zanod-distroless"
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
-          push: false
-          load: true
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
           platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }}
+          tags: |
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ matrix.arch }}
           target: zanod-distroless
-          # provenance: mode=max
-          # sbom: true
+          provenance: ${{ github.event_name == 'push' && 'mode=max' || false }}
+          sbom: ${{ github.event_name == 'push' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
       - name: "simple test: zanod-distroless"
+        env:
+          IMAGE: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
         run: |
-          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-zanod-distroless-${{ steps.vars.outputs.sha_short }} --version
+          if [ "${{ github.event_name }}" = "push" ]; then
+            docker pull --platform ${{ matrix.platform }} "${IMAGE}"
+          fi
+          docker run --rm --platform ${{ matrix.platform }} "${IMAGE}" --version
 
       - name: "build target: simplewallet-distroless"
         uses: docker/build-push-action@v7
         with:
           context: .
           file: ./Dockerfile
-          push: false
-          load: true
+          push: ${{ github.event_name == 'push' }}
+          load: ${{ github.event_name != 'push' }}
           platforms: ${{ matrix.platform }}
           build-args: |
             BUILD_WIDTH=${{ matrix.build-width }}
             ZANO_REF=${{ matrix.zano-ref }}
-          tags: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless,${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }}
+          tags: |
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
+            ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ matrix.arch }}
           target: simplewallet-distroless
-          # provenance: mode=max
-          # sbom: true
+          provenance: ${{ github.event_name == 'push' && 'mode=max' || false }}
+          sbom: ${{ github.event_name == 'push' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: "simple test: zanod-distroless"
+      - name: "simple test: simplewallet-distroless"
+        env:
+          IMAGE: ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ matrix.arch }}-${{ steps.vars.outputs.sha_short }}
         run: |
-          docker run --rm --platform ${{ matrix.platform }} ${{ vars.DOCKERHUB_REPO }}:${{ matrix.zano-ref }}-simplewallet-distroless-${{ steps.vars.outputs.sha_short }} --version
+          if [ "${{ github.event_name }}" = "push" ]; then
+            docker pull --platform ${{ matrix.platform }} "${IMAGE}"
+          fi
+          docker run --rm --platform ${{ matrix.platform }} "${IMAGE}" --version
+
+  # Public Hub tags stay un-suffixed (`2.2.1.506-zano-runner`). Each arch job
+  # pushes only `-<arch>` / `-<arch>-<sha>` so they cannot clobber each other;
+  # this job waits for both, then writes the multi-arch index.
+  docker-publish-index:
+    name: ${{ matrix.channel }} index
+    if: github.event_name == 'push'
+    needs: docker-build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - channel: release
+            zano-ref: 2.2.1.506
+          - channel: release - 1
+            zano-ref: 2.2.1.505
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: login to dockerhub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: setup buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Set SHA_SHORT for commit
+        id: vars
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+
+      - name: create multi-arch tags
+        env:
+          REPO: ${{ vars.DOCKERHUB_REPO }}
+          ZANO_REF: ${{ matrix.zano-ref }}
+          SHA: ${{ steps.vars.outputs.sha_short }}
+        run: |
+          set -euo pipefail
+          for target in zano-runner zanod-distroless simplewallet-distroless; do
+            docker buildx imagetools create \
+              -t "${REPO}:${ZANO_REF}-${target}" \
+              -t "${REPO}:${ZANO_REF}-${target}-${SHA}" \
+              "${REPO}:${ZANO_REF}-${target}-amd64-${SHA}" \
+              "${REPO}:${ZANO_REF}-${target}-arm64-${SHA}"
+          done
